@@ -3,8 +3,8 @@ package quickunion
 /*
 algorithm: quick union (lazy approach)
 Initialize: N
-Union: N
-find: 1
+Union: N (cost of finding roots)
+find: N (worst-case)
 
 defect: Union is to expensive O(n^2)
 */
@@ -21,36 +21,21 @@ func NewUnionFind(N int) *UnionFind {
 	return &UnionFind{id: id}
 }
 
+func (u *UnionFind) root(i int) int {
+	for i != u.id[i] {
+		i = u.id[i]
+	}
+	return i
+}
+
 func (u *UnionFind) Union(p int, q int) {
-	var pRoot = u.id[p]
-
-	for pRoot != u.id[pRoot] {
-		pRoot = u.id[pRoot]
-	}
-
-	var qRoot = u.id[q]
-
-	for qRoot != u.id[qRoot] {
-		qRoot = u.id[qRoot]
-	}
-
-	u.id[pRoot] = qRoot
+	i := u.root(p)
+	j := u.root(q)
+	u.id[i] = j
 }
 
 func (u *UnionFind) Connected(p int, q int) bool {
-	var pRoot = u.id[p]
-
-	for pRoot != u.id[pRoot] {
-		pRoot = u.id[pRoot]
-	}
-
-	var qRoot = u.id[q]
-
-	for qRoot != u.id[qRoot] {
-		qRoot = u.id[qRoot]
-	}
-
-	return qRoot == pRoot
+	return u.root(p) == u.root(q)
 }
 
 func (u *UnionFind) ToSlice() []int {
