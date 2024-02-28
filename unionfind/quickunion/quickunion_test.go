@@ -11,6 +11,7 @@ func TestUnionEmptyList(t *testing.T) {
 	for i := range got {
 		if got[i] != want[i] {
 			t.Errorf("Union(%d, %d) == %q, want %q", 4, 3, got, want)
+			break
 		}
 	}
 
@@ -18,7 +19,7 @@ func TestUnionEmptyList(t *testing.T) {
 }
 
 func TestUnion(t *testing.T) {
-	want := []int{0, 1, 1, 8, 8, 5, 5, 7, 8, 8}
+	want := []int{0, 1, 1, 8, 3, 5, 5, 7, 8, 8}
 	u := NewUnionFind(10)
 	u.Union(4, 3)
 	u.Union(3, 8)
@@ -31,6 +32,7 @@ func TestUnion(t *testing.T) {
 	for i := range got {
 		if got[i] != want[i] {
 			t.Errorf("Union(%d, %d) == %q, want %q", 4, 3, got, want)
+			break
 		}
 	}
 
