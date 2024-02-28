@@ -1,7 +1,5 @@
 package quickunion
 
-import "fmt"
-
 /*
 algorithm: quick union (lazy approach)
 Initialize: N
@@ -11,23 +9,20 @@ find: 1
 defect: Union is to expensive O(n^2)
 */
 
-type unionFind struct {
+type UnionFind struct {
 	id []int
 }
 
-func NewUnionFind(N int) *unionFind {
-	u := &unionFind{id: make([]int, N)}
-	for i := range u.id {
-		u.id[i] = i
+func NewUnionFind(N int) *UnionFind {
+	id := make([]int, N)
+	for i := 0; i < N; i++ {
+		id[i] = i
 	}
-	return u
+	return &UnionFind{id: id}
 }
 
-func (u *unionFind) Union(p int, q int) {
+func (u *UnionFind) Union(p int, q int) {
 	var pRoot = u.id[p]
-
-	println(pRoot)
-	println(u.id[pRoot])
 
 	for pRoot != u.id[pRoot] {
 		pRoot = u.id[pRoot]
@@ -42,7 +37,7 @@ func (u *unionFind) Union(p int, q int) {
 	u.id[pRoot] = qRoot
 }
 
-func (u *unionFind) Connected(p int, q int) bool {
+func (u *UnionFind) Connected(p int, q int) bool {
 	var pRoot = u.id[p]
 
 	for pRoot != u.id[pRoot] {
@@ -58,6 +53,6 @@ func (u *unionFind) Connected(p int, q int) bool {
 	return qRoot == pRoot
 }
 
-func (u *unionFind) Show() {
-	fmt.Printf("union-find: %v\n", u.id)
+func (u *UnionFind) ToSlice() []int {
+	return u.id
 }

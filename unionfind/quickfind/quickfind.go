@@ -1,7 +1,5 @@
 package quickfind
 
-import "fmt"
-
 /*
 Initialize: N
 Union: N
@@ -10,19 +8,19 @@ find: 1
 defect: Union is to expensive O(n^2)
 */
 
-type unionFind struct {
+type UnionFind struct {
 	id []int
 }
 
-func NewUnionFind(N int) *unionFind {
-	u := &unionFind{id: make([]int, N)}
-	for i := range u.id {
-		u.id[i] = i
+func NewUnionFind(N int) *UnionFind {
+	id := make([]int, N)
+	for i := 0; i < N; i++ {
+		id[i] = i
 	}
-	return u
+	return &UnionFind{id: id}
 }
 
-func (u *unionFind) Union(p int, q int) {
+func (u *UnionFind) Union(p int, q int) {
 	if u.Connected(p, q) {
 		return
 	}
@@ -37,10 +35,10 @@ func (u *unionFind) Union(p int, q int) {
 	}
 }
 
-func (u *unionFind) Connected(p int, q int) bool {
+func (u *UnionFind) Connected(p int, q int) bool {
 	return u.id[p] == u.id[q]
 }
 
-func (u *unionFind) Show() {
-	fmt.Printf("union-find: %v\n", u.id)
+func (u *UnionFind) ToSlice() []int {
+	return u.id
 }
