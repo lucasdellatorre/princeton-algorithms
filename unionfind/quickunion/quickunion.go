@@ -6,7 +6,7 @@ Initialize: N
 Union: N (cost of finding roots)
 find: N (worst-case)
 
-defect: Union is to expensive O(n^2)
+defect: Union is also too slow
 */
 
 type UnionFind struct {
