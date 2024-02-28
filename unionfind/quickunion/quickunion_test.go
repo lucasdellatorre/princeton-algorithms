@@ -36,3 +36,35 @@ func TestUnion(t *testing.T) {
 
 	t.Log("Passed: ", u.ToSlice())
 }
+
+func TestConnectionSuccess(t *testing.T) {
+	want := true
+	u := NewUnionFind(10)
+	u.Union(4, 3)
+	u.Union(3, 8)
+	u.Union(6, 5)
+	u.Union(9, 4)
+	u.Union(2, 1)
+
+	got := u.Connected(8, 9)
+
+	if got != want {
+		t.Errorf("Connected(%d, %d) == %v, want %v", 8, 9, got, want)
+	}
+}
+
+func TestConnectionFailure(t *testing.T) {
+	want := false
+	u := NewUnionFind(10)
+	u.Union(4, 3)
+	u.Union(3, 8)
+	u.Union(6, 5)
+	u.Union(9, 4)
+	u.Union(2, 1)
+
+	got := u.Connected(5, 4)
+
+	if got != want {
+		t.Errorf("Connected(%d, %d) == %v, want %v", 8, 9, got, want)
+	}
+}

@@ -44,7 +44,7 @@ func (u *UnionFind) Connected(p int, q int) bool {
 		pRoot = u.id[pRoot]
 	}
 
-	var qRoot = u.id[p]
+	var qRoot = u.id[q]
 
 	for qRoot != u.id[qRoot] {
 		qRoot = u.id[qRoot]
