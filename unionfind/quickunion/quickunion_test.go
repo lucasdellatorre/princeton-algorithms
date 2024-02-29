@@ -10,12 +10,9 @@ func TestUnionEmptyList(t *testing.T) {
 
 	for i := range got {
 		if got[i] != want[i] {
-			t.Errorf("Union(%d, %d) == %q, want %q", 4, 3, got, want)
-			break
+			t.Errorf("Union(%d, %d) == %v, want %v", 4, 3, got, want)
 		}
 	}
-
-	t.Log("Passed: ", u.ToSlice())
 }
 
 func TestUnion(t *testing.T) {
@@ -31,12 +28,9 @@ func TestUnion(t *testing.T) {
 
 	for i := range got {
 		if got[i] != want[i] {
-			t.Errorf("Union(%d, %d) == %q, want %q", 4, 3, got, want)
-			break
+			t.Errorf("Union(%d, %d) == %v, want %v", 4, 3, got, want)
 		}
 	}
-
-	t.Log("Passed: ", u.ToSlice())
 }
 
 func TestConnectionSuccess(t *testing.T) {
