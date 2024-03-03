@@ -2,16 +2,37 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"math/rand"
+	"time"
+
+	"github.com/gopxl/pixel"
+	"github.com/gopxl/pixel/imdraw"
+	"github.com/gopxl/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 )
 
 // Percolation. We model the system as an n-by-n grid of sites. Each site is either blocked or open; open sites are initially empty. A full site is an open site that can be connected to an open site in the top row via a chain of neighboring (left, right, up, down) open sites. If there is a full site in the bottom row, then we say that the system percolates.
 // https://introcs.cs.princeton.edu/java/24percolation/
 // https://coursera.cs.princeton.edu/algs4/assignments/percolation/specification.php
-// Ideia por trás
-// Uma matriz toda bloqueada, escolher um posicao aleatoriamente em toda a matriz. tentar abrir ela
-// checar se a matriz foi percolada, ou seja, a parte superior esta conectada com a parte inferior
-//
+// Todo: animacao dos nodos se conectando
+
+/*
+Recently, i was doing a course of algorithms 1 of the university of princeton and there is a exercise about union find that i would like to share with you guys.
+
+But instead of java i implemented in golang, a language that i'm learning.
+
+Union find is a data structure that we use to connect sets.
+
+Union find can be use to resolve various problems, like Koshen-Kopeman algorithm in physics, Kruskal's minimin spanning three, Equivalence of finite state automata, but the exercise that the course introduces is Percolation.
+
+We will use Monte Carlo simulation to study a natural model known as percolation.
+
+Percolation. We model the system as an n-by-n grid of sites. Each site is either blocked or open; open sites are initially empty. A full site is an open site that can be connected to an open site in the top row via a chain of neighboring (left, right, up, down) open sites. If there is a full site in the bottom row, then we say that the system percolates.
+
+I used a weighted union find with path compression and i create a animation do demonstrate this simulation and i would like to share with you guys: .
+
+*/
 
 type UnionFind struct {
 	id   []int
@@ -20,8 +41,12 @@ type UnionFind struct {
 	n    int
 }
 
-func main() {
-	// New(rand.NewSource(time.Now().UnixNano()))
+type Cell struct {
+	Rect  pixel.Rect
+	Color color.Color
+}
+
+func montecarlo() {
 	n := 4
 	u := newUnionFind(n)
 
@@ -35,12 +60,84 @@ func main() {
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
 
-	fmt.Println(randomNumbers)
-
 	for i := 0; !u.percolates(); i++ {
 		u.Open(randomNumbers[i])
 		u.printUf()
 	}
+}
+
+func run() {
+	var width float64 = 800
+	var height float64 = 800
+	cfg := pixelgl.WindowConfig{
+		Title:  "Pixel Rocks!",
+		Bounds: pixel.R(0, 0, width, height),
+		VSync:  true,
+	}
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	imd := imdraw.New(nil)
+
+	n := 4
+	u := newUnionFind(n)
+
+	for i := 0; i < n; i++ {
+		u.union(i, n*n)
+	}
+
+	for i := n * (n - 1); i < n*n; i++ {
+		u.union(i, n*n+1)
+	}
+
+	randomNumbers := generateUniqueRandomNumbers(n * n)
+
+	animationCells := make([]Cell, n*n)
+
+	var PADDING_X float64 = width / 3
+	var PADDING_Y float64 = width / 3
+
+	for !win.Closed() {
+		for i := 0; !u.percolates(); i++ {
+			imd.Clear()
+			time.Sleep(time.Second)
+			for i := range u.grid {
+				if u.grid[i] {
+					animationCells[i].Color = colornames.Black
+				} else {
+					animationCells[i].Color = colornames.White
+				}
+				if i%n == 0 {
+					animationCells[i].Rect = pixel.R(PADDING_X+0, float64(50*(i%n))-PADDING_Y, float64(50*i+PADDING_X, 50+PADDING_Y)
+				} else {
+
+				}
+				animationCells[i].Rect = pixel.R(PADDING_X+0, i%n, float64(i)*50+PADDING_X, 50+PADDING_Y)
+			}
+
+			for i := range animationCells {
+				imd.Color = animationCells[i].Color
+				imd.Push(animationCells[i].Rect.Min, animationCells[i].Rect.Max)
+			}
+
+			imd.Rectangle(0)
+
+			win.Clear(colornames.Aliceblue)
+			imd.Draw(win)
+			win.Update()
+
+			u.Open(randomNumbers[i])
+
+			u.printUf()
+		}
+
+	}
+}
+
+func main() {
+	pixelgl.Run(run)
 }
 
 func generateUniqueRandomNumbers(n int) []int {
