@@ -37,7 +37,7 @@ func main() {
 
 	fmt.Println(randomNumbers)
 
-	for i := 0; i < n*n; i++ {
+	for i := 0; !u.percolates(); i++ {
 		u.Open(randomNumbers[i])
 		u.printUf()
 	}
@@ -68,20 +68,20 @@ func (u *UnionFind) isOpen(i int) bool {
 
 func (u *UnionFind) Open(i int) {
 	u.grid[i] = false
-	if i-1 > 0 && u.isOpen(i-1) { // left
+
+	// Check and join with adjacent open sites
+	if i-1 >= 0 && i%u.n != 0 && !u.isOpen(i-1) { // left
 		u.union(i, i-1)
 	}
-	if i+1 < len(u.grid) && u.isOpen(i+1) { // right
+	if i+1 < len(u.grid) && (i+1)%u.n != 0 && !u.isOpen(i+1) { // right
 		u.union(i, i+1)
 	}
-	if i+u.n < len(u.grid) && u.isOpen(i+u.n) { // top
-		u.union(i, i+1)
+	if i-u.n >= 0 && u.isOpen(i-u.n) { // top
+		u.union(i, i-u.n)
 	}
-	if i-u.n > 0 && u.isOpen(i-u.n) { // left
-		u.union(i, i-1)
+	if i+u.n < len(u.grid) && u.isOpen(i+u.n) { // bottom
+		u.union(i, i+u.n)
 	}
-	// u.union(i, i-u.n) // top
-	// u.union(i, i+u.n) // bottom
 }
 
 func (u *UnionFind) union(p int, q int) {
