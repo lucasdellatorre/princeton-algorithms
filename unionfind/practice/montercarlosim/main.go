@@ -63,7 +63,7 @@ func run() {
 		panic(err)
 	}
 
-	n := 10
+	n := 4
 	u := newUnionFind(n)
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
@@ -72,9 +72,16 @@ func run() {
 
 	animationCells := make([]Cell, n*n)
 
-	var PADDING_X float64 = 100
-	var PADDING_Y float64 = height - 100
-	var CELL_SIZE float64 = 50
+	var CELL_SIZE float64 = width / float64(n+n)
+
+	centerX := width / 2
+	centerY := height / 2
+
+	matrixWidth := float64(n) * CELL_SIZE
+	matrixHeight := float64(n) * CELL_SIZE
+
+	startX := centerX - matrixWidth/2
+	startY := centerY - matrixHeight/2
 
 	for !win.Closed() {
 		win.Clear(colornames.Lightblue)
@@ -83,8 +90,11 @@ func run() {
 		for i := 0; !u.percolates(); i++ {
 			u.Open(randomNumbers[i])
 
-			var minX, maxX = PADDING_X - CELL_SIZE, PADDING_X
-			var minY, maxY = PADDING_Y + CELL_SIZE, PADDING_Y + CELL_SIZE + CELL_SIZE
+			// var minX, maxX = startX - CELL_SIZE, startY
+			// var minY, maxY = startY + CELL_SIZE, startY + CELL_SIZE + CELL_SIZE
+
+			var minX, maxX = startX - CELL_SIZE, startY
+			var minY, maxY = startY + matrixHeight, startY + matrixHeight - CELL_SIZE
 			for j := range u.blockedGrid {
 				if u.blockedGrid[j] {
 					animationCells[j].Color = colornames.Black
@@ -93,8 +103,8 @@ func run() {
 				}
 
 				if j > 0 && j%n == 0 {
-					minX = PADDING_X
-					maxX = PADDING_X + CELL_SIZE
+					minX = startX
+					maxX = startX + CELL_SIZE
 					minY = minY - CELL_SIZE
 					maxY = maxY - CELL_SIZE
 				} else {
