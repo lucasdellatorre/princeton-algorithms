@@ -35,10 +35,10 @@ I used a weighted union find with path compression and i create a animation do d
 */
 
 type UnionFind struct {
-	id   []int
-	sz   []int
-	grid []bool
-	n    int
+	id          []int
+	sz          []int
+	blockedGrid []bool
+	n           int
 }
 
 type Cell struct {
@@ -63,10 +63,12 @@ func run() {
 		panic(err)
 	}
 
-	n := 5
+	n := 10
 	u := newUnionFind(n)
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
+
+	fmt.Println(randomNumbers)
 
 	animationCells := make([]Cell, n*n)
 
@@ -75,21 +77,22 @@ func run() {
 	var CELL_SIZE float64 = 50
 
 	for !win.Closed() {
+		win.Clear(colornames.Lightblue)
+
+		// Update open cells and draw
 		for i := 0; !u.percolates(); i++ {
-			win.Clear(colornames.Lightblue)
-			time.Sleep(time.Microsecond * 200)
 			u.Open(randomNumbers[i])
 
 			var minX, maxX = PADDING_X - CELL_SIZE, PADDING_X
 			var minY, maxY = PADDING_Y + CELL_SIZE, PADDING_Y + CELL_SIZE + CELL_SIZE
-			for i := range u.grid {
-				if u.grid[i] {
-					animationCells[i].Color = colornames.Black
+			for j := range u.blockedGrid {
+				if u.blockedGrid[j] {
+					animationCells[j].Color = colornames.Black
 				} else {
-					animationCells[i].Color = colornames.White
+					animationCells[j].Color = colornames.White
 				}
 
-				if i > 0 && i%n == 0 {
+				if j > 0 && j%n == 0 {
 					minX = PADDING_X
 					maxX = PADDING_X + CELL_SIZE
 					minY = minY - CELL_SIZE
@@ -98,25 +101,25 @@ func run() {
 					minX = minX + CELL_SIZE
 					maxX = maxX + CELL_SIZE
 				}
-				animationCells[i].Rect = pixel.R(minX, minY, maxX, maxY)
-			}
+				animationCells[j].Rect = pixel.R(minX, minY, maxX, maxY)
 
-			for i := range animationCells {
+				// Draw cell
 				imd := imdraw.New(nil)
-				imd.Color = animationCells[i].Color
-				imd.Push(animationCells[i].Rect.Min, animationCells[i].Rect.Max)
+				imd.Color = animationCells[j].Color
+				imd.Push(animationCells[j].Rect.Min, animationCells[j].Rect.Max)
 				imd.Rectangle(0)
 				imd.Draw(win)
 			}
-			fmt.Println("======")
-			u.printGridMatrix()
-			fmt.Println(animationCells)
+
+			// Update window
 			win.Update()
+			time.Sleep(time.Millisecond * 200) // Adjust timing as needed
 		}
-		u.printUf()
-		time.Sleep(time.Second * 10)
-		win.SetClosed(true)
+		fmt.Println("Percolates", u.percolates())
+		time.Sleep(time.Second * 5)
 	}
+
+	fmt.Println(u.percolates())
 }
 
 func generateUniqueRandomNumbers(n int) []int {
@@ -139,23 +142,28 @@ func generateUniqueRandomNumbers(n int) []int {
 }
 
 func (u *UnionFind) isOpen(i int) bool {
-	return !u.grid[i]
+	return !u.blockedGrid[i]
 }
 
 func (u *UnionFind) Open(i int) {
-	u.grid[i] = false
+	fmt.Println("Open", i)
+	u.blockedGrid[i] = false
 
 	// Check and join with adjacent open sites
-	if i-1 >= 0 && i%u.n != 0 && !u.isOpen(i-1) { // left
+	if i-1 >= 0 && i%u.n != 0 && u.isOpen(i-1) { // left
+		fmt.Printf("Union(%d, %d)\n", i, i-1)
 		u.union(i, i-1)
 	}
-	if i+1 < len(u.grid) && (i+1)%u.n != 0 && !u.isOpen(i+1) { // right
+	if i+1 < len(u.blockedGrid) && (i+1)%u.n != 0 && u.isOpen(i+1) { // right
 		u.union(i, i+1)
+		fmt.Printf("Union(%d, %d)\n", i, i+1)
 	}
 	if i-u.n >= 0 && u.isOpen(i-u.n) { // top
+		fmt.Printf("Union(%d, %d)\n", i, i-u.n)
 		u.union(i, i-u.n)
 	}
-	if i+u.n < len(u.grid) && u.isOpen(i+u.n) { // bottom
+	if i+u.n < len(u.blockedGrid) && u.isOpen(i+u.n) { // bottom
+		fmt.Printf("Union(%d, %d)\n", i, i+u.n)
 		u.union(i, i+u.n)
 	}
 }
@@ -195,6 +203,10 @@ func (u *UnionFind) percolates() bool {
 	return u.connection(u.n*u.n, u.n*u.n+1)
 }
 
+func (u *UnionFind) percolationPath() bool { // Todo: make the path that percolates as blue
+	return true
+}
+
 func newUnionFind(n int) *UnionFind {
 	id := make([]int, n*n+2)
 	sz := make([]int, n*n+2)
@@ -205,10 +217,10 @@ func newUnionFind(n int) *UnionFind {
 	initializeGridMatrix(grid)
 
 	u := &UnionFind{
-		id:   id,
-		sz:   sz,
-		grid: grid,
-		n:    n,
+		id:          id,
+		sz:          sz,
+		blockedGrid: grid,
+		n:           n,
 	}
 
 	for i := 0; i < n; i++ {
@@ -263,7 +275,7 @@ func (u *UnionFind) printGridMatrix() {
 		if i > 0 && i%u.n == 0 {
 			fmt.Println()
 		}
-		fmt.Printf(" %t ", u.grid[i])
+		fmt.Printf(" %t ", u.blockedGrid[i])
 	}
 }
 
