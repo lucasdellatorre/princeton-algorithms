@@ -46,31 +46,15 @@ type Cell struct {
 	Color color.Color
 }
 
-func montecarlo() {
-	n := 4
-	u := newUnionFind(n)
-
-	for i := 0; i < n; i++ {
-		u.union(i, n*n)
-	}
-
-	for i := n * (n - 1); i < n*n; i++ {
-		u.union(i, n*n+1)
-	}
-
-	randomNumbers := generateUniqueRandomNumbers(n * n)
-
-	for i := 0; !u.percolates(); i++ {
-		u.Open(randomNumbers[i])
-		u.printUf()
-	}
+func main() {
+	pixelgl.Run(run)
 }
 
 func run() {
 	var width float64 = 800
 	var height float64 = 800
 	cfg := pixelgl.WindowConfig{
-		Title:  "Pixel Rocks!",
+		Title:  "Percolation",
 		Bounds: pixel.R(0, 0, width, height),
 		VSync:  true,
 	}
@@ -79,65 +63,60 @@ func run() {
 		panic(err)
 	}
 
-	imd := imdraw.New(nil)
-
-	n := 4
+	n := 5
 	u := newUnionFind(n)
-
-	for i := 0; i < n; i++ {
-		u.union(i, n*n)
-	}
-
-	for i := n * (n - 1); i < n*n; i++ {
-		u.union(i, n*n+1)
-	}
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
 
 	animationCells := make([]Cell, n*n)
 
-	var PADDING_X float64 = width / 3
-	var PADDING_Y float64 = width / 3
+	var PADDING_X float64 = 100
+	var PADDING_Y float64 = height - 100
+	var CELL_SIZE float64 = 50
 
 	for !win.Closed() {
 		for i := 0; !u.percolates(); i++ {
-			imd.Clear()
-			time.Sleep(time.Second)
+			win.Clear(colornames.Lightblue)
+			time.Sleep(time.Microsecond * 200)
+			u.Open(randomNumbers[i])
+
+			var minX, maxX = PADDING_X - CELL_SIZE, PADDING_X
+			var minY, maxY = PADDING_Y + CELL_SIZE, PADDING_Y + CELL_SIZE + CELL_SIZE
 			for i := range u.grid {
 				if u.grid[i] {
 					animationCells[i].Color = colornames.Black
 				} else {
 					animationCells[i].Color = colornames.White
 				}
-				if i%n == 0 {
-					animationCells[i].Rect = pixel.R(PADDING_X+0, float64(50*(i%n))-PADDING_Y, float64(50*i+PADDING_X, 50+PADDING_Y)
-				} else {
 
+				if i > 0 && i%n == 0 {
+					minX = PADDING_X
+					maxX = PADDING_X + CELL_SIZE
+					minY = minY - CELL_SIZE
+					maxY = maxY - CELL_SIZE
+				} else {
+					minX = minX + CELL_SIZE
+					maxX = maxX + CELL_SIZE
 				}
-				animationCells[i].Rect = pixel.R(PADDING_X+0, i%n, float64(i)*50+PADDING_X, 50+PADDING_Y)
+				animationCells[i].Rect = pixel.R(minX, minY, maxX, maxY)
 			}
 
 			for i := range animationCells {
+				imd := imdraw.New(nil)
 				imd.Color = animationCells[i].Color
 				imd.Push(animationCells[i].Rect.Min, animationCells[i].Rect.Max)
+				imd.Rectangle(0)
+				imd.Draw(win)
 			}
-
-			imd.Rectangle(0)
-
-			win.Clear(colornames.Aliceblue)
-			imd.Draw(win)
+			fmt.Println("======")
+			u.printGridMatrix()
+			fmt.Println(animationCells)
 			win.Update()
-
-			u.Open(randomNumbers[i])
-
-			u.printUf()
 		}
-
+		u.printUf()
+		time.Sleep(time.Second * 10)
+		win.SetClosed(true)
 	}
-}
-
-func main() {
-	pixelgl.Run(run)
 }
 
 func generateUniqueRandomNumbers(n int) []int {
@@ -213,7 +192,7 @@ func (u *UnionFind) connection(p, q int) bool {
 }
 
 func (u *UnionFind) percolates() bool {
-	return u.connection(4*4, 4*4+1)
+	return u.connection(u.n*u.n, u.n*u.n+1)
 }
 
 func newUnionFind(n int) *UnionFind {
@@ -225,13 +204,22 @@ func newUnionFind(n int) *UnionFind {
 	initializeSizeMatrix(sz)
 	initializeGridMatrix(grid)
 
-	uf := &UnionFind{
+	u := &UnionFind{
 		id:   id,
 		sz:   sz,
 		grid: grid,
 		n:    n,
 	}
-	return uf
+
+	for i := 0; i < n; i++ {
+		u.union(i, n*n)
+	}
+
+	for i := n * (n - 1); i < n*n; i++ {
+		u.union(i, n*n+1)
+	}
+
+	return u
 }
 
 func initializeIdMatrix(matrix []int) {
