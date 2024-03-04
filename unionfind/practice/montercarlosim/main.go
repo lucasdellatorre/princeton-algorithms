@@ -9,7 +9,9 @@ import (
 	"github.com/gopxl/pixel"
 	"github.com/gopxl/pixel/imdraw"
 	"github.com/gopxl/pixel/pixelgl"
+	"github.com/gopxl/pixel/text"
 	"golang.org/x/image/colornames"
+	"golang.org/x/image/font/basicfont"
 )
 
 // Percolation. We model the system as an n-by-n grid of sites. Each site is either blocked or open; open sites are initially empty. A full site is an open site that can be connected to an open site in the top row via a chain of neighboring (left, right, up, down) open sites. If there is a full site in the bottom row, then we say that the system percolates.
@@ -46,6 +48,14 @@ type Cell struct {
 	Color color.Color
 }
 
+type Subtitle struct {
+	Text       string
+	TextColor  color.Color
+	TextVector pixel.Vec
+	RectColor  color.Color
+	Rect       pixel.Rect
+}
+
 func main() {
 	pixelgl.Run(run)
 }
@@ -63,16 +73,14 @@ func run() {
 		panic(err)
 	}
 
-	n := 4
+	n := 10
 	u := newUnionFind(n)
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
 
-	fmt.Println(randomNumbers)
-
 	animationCells := make([]Cell, n*n)
 
-	var CELL_SIZE float64 = width / float64(n+n)
+	CELL_SIZE := width / float64(n+n)
 
 	centerX := width / 2
 	centerY := height / 2
@@ -83,15 +91,58 @@ func run() {
 	startX := centerX - matrixWidth/2
 	startY := centerY - matrixHeight/2
 
+	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	nText := text.New(pixel.V(startX-125, startY+centerY-50), basicAtlas)
+	nText.Color = colornames.Black
+	fmt.Fprintf(nText, "N = %d", n)
+
+	//////////////////////////////
+
+	subtitles := []Subtitle{
+		{
+			Text:       "open site",
+			TextColor:  color.Black,
+			TextVector: pixel.V(startX+10+50, 50),
+			RectColor:  color.White,
+			Rect:       pixel.R(startX, CELL_SIZE, startY+CELL_SIZE, 100),
+		},
+		{
+			Text:       "blocked site",
+			TextColor:  color.Black,
+			TextVector: pixel.V(startX+10+50, 100),
+			RectColor:  color.Black,
+			Rect:       pixel.R(startX, CELL_SIZE+10+50, startY+CELL_SIZE, 100+CELL_SIZE),
+		},
+	}
+
 	for !win.Closed() {
-		win.Clear(colornames.Lightblue)
+		win.Clear(colornames.White)
+		nText.Draw(win, pixel.IM.Scaled(nText.Orig, 1.5))
+		for _, subtitle := range subtitles {
+			imd := imdraw.New(nil)
+			imd.Color = subtitle.RectColor
+			imd.Push(subtitle.Rect.Min, subtitle.Rect.Max)
+			imd.Rectangle(0)
+			imd.Draw(win)
+
+			// BorderLine
+			imd = imdraw.New(nil)
+			imd.Color = color.Black
+			imd.Push(subtitle.Rect.Min, subtitle.Rect.Max)
+			imd.Rectangle(1)
+			imd.Draw(win)
+
+			subtitleText := text.New(subtitle.TextVector, basicAtlas)
+
+			subtitleText.Color = subtitle.TextColor
+
+			fmt.Fprintln(subtitleText, subtitle.Text)
+			subtitleText.Draw(win, pixel.IM.Scaled(subtitleText.Orig, 1.5))
+		}
 
 		// Update open cells and draw
 		for i := 0; !u.percolates(); i++ {
 			u.Open(randomNumbers[i])
-
-			// var minX, maxX = startX - CELL_SIZE, startY
-			// var minY, maxY = startY + CELL_SIZE, startY + CELL_SIZE + CELL_SIZE
 
 			var minX, maxX = startX - CELL_SIZE, startY
 			var minY, maxY = startY + matrixHeight, startY + matrixHeight - CELL_SIZE
@@ -118,6 +169,13 @@ func run() {
 				imd.Color = animationCells[j].Color
 				imd.Push(animationCells[j].Rect.Min, animationCells[j].Rect.Max)
 				imd.Rectangle(0)
+				imd.Draw(win)
+
+				// Draw borderline
+				imd = imdraw.New(nil)
+				imd.Color = colornames.Black
+				imd.Push(animationCells[j].Rect.Min, animationCells[j].Rect.Max)
+				imd.Rectangle(1)
 				imd.Draw(win)
 			}
 
