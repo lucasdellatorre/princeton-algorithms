@@ -73,7 +73,7 @@ func run() {
 		panic(err)
 	}
 
-	n := 10
+	n := 20
 	u := newUnionFind(n)
 
 	randomNumbers := generateUniqueRandomNumbers(n * n)
@@ -102,16 +102,16 @@ func run() {
 		{
 			Text:       "open site",
 			TextColor:  color.Black,
-			TextVector: pixel.V(startX+10+50, 50),
+			TextVector: pixel.V(startX+10+40, 130),
 			RectColor:  color.White,
-			Rect:       pixel.R(startX, CELL_SIZE, startY+CELL_SIZE, 100),
+			Rect:       pixel.R(startX, 160, startY+40, 120),
 		},
 		{
 			Text:       "blocked site",
 			TextColor:  color.Black,
-			TextVector: pixel.V(startX+10+50, 100),
+			TextVector: pixel.V(startX+10+40, 80),
 			RectColor:  color.Black,
-			Rect:       pixel.R(startX, CELL_SIZE+10+50, startY+CELL_SIZE, 100+CELL_SIZE),
+			Rect:       pixel.R(startX, 120-10, startY+40, 80-10),
 		},
 	}
 
@@ -181,7 +181,6 @@ func run() {
 
 			// Update window
 			win.Update()
-			time.Sleep(time.Millisecond * 200) // Adjust timing as needed
 		}
 		fmt.Println("Percolates", u.percolates())
 		time.Sleep(time.Second * 5)
